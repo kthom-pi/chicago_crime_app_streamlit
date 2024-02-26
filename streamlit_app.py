@@ -91,6 +91,7 @@ with st.sidebar:
 data_load_state = st.text('Loading data...')
 new_df = clean_robberies(df_crime_1, df_demographics, df_communities, crime)
 
+
 st.write(new_df)
 
 
