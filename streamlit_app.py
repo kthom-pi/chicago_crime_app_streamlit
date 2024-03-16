@@ -9,6 +9,7 @@ import plotly.express as px
 
 # Import the data files.
 # Crime database
+
 df_crime = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\Crimes_-_2001_to_Present.csv")
 
 # Communities database
@@ -18,16 +19,12 @@ df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chic
 df_crime_1 = df_crime.loc[:1000, :]
 
 crime = "MOTOR VEHICLE THEFT"
-community = "Rogers Park"
+#community = "Rogers Park"
 
 start_init = "2018-01-01"
 end_init = "2024-01-01"
 
-start_init_1 = datetime.date(2018, 1, 1)
-end_init_1 = datetime.date(2024, 1, 10)
 
-
-@st.cache_data
 def clean_robberies(crime_df, neighborhoods, crime_type, start_date=start_init, end_date=end_init):
     """Combines the crime, demographic and neightborhoods dataframe into one."""
 
@@ -70,7 +67,7 @@ def clean_robberies(crime_df, neighborhoods, crime_type, start_date=start_init, 
     return crime_df_1
 
 
-@st.cache
+
 def plot_community_time_day(df, community, begin_year, end_year):
     """Determines and plots the number of crimes in the community by the time of day."""
 
@@ -101,45 +98,52 @@ st.set_page_config(
 
 alt.themes.enable("dark")
 
+start_init_1 = pd.to_datetime(start_init)
+end_init_1 = pd.to_datetime(end_init)
+
 
 # Add a sidebar
 with st.sidebar:
     st.title('Neighborhodd Input')
     begin_date = st.date_input('Begin Date', start_init_1)
     ending_date = st.date_input('End Date', end_init_1)
+    community = st.selectbox('Select Community', options=df_communities['Community'].unique())
+
+
+
+# Convert the datetime back to a string
+begin_date_1 = begin_date.strftime('%Y-%m-%d')
+ending_date_1 = ending_date.strftime('%Y-%m-%d')
+
+data_load_state = st.text('Loading data...')
+new_df = clean_robberies(df_crime_1, df_communities, crime, begin_date_1, ending_date_1)
+data_load_state.text("Data loaded!")
+
+st.write(new_df)
+st.subheader('Crime by Time of Day')
+
 
 # Extract the year
 begin_year_int = begin_date.year
 end_year_int = ending_date.year
 
-
-data_load_state = st.text('Loading data...')
-new_df = clean_robberies(df_crime_1, df_communities, crime, begin_date, ending_date)
-data_load_state.text("Data loaded!")
-
-
-st.write(new_df)
-
-st.subheader('Crime by Time of Day')
-
 time_of_day_plot = plot_community_time_day(new_df, community, begin_year_int, end_year_int)
 
 # Initialize variables to hold selected begin and end years
-begin_year_value = None
-end_year_value = None
-
-
+#begin_year_value = None
+#end_year_value = None
 # Button to trigger the update
-update_button = st.button("Update Years")
+#update_button = st.button("Update Years")
 
-if update_button:
-    community = st.selectbox('Select Community', options=new_df['Community'].unique())
-    begin_year_value = st.number_input('Begin Year', min_value=int(new_df['year'].min()), value=int(new_df['year'].min()), step=1)
-    end_year_value = st.number_input('End Year', min_value=begin_year_value, value=int(new_df['year'].max()), step=1)
+
+#if update_button:
+#community = st.selectbox('Select Community', options=new_df['Community'].unique())
+#begin_year_value = st.number_input('Begin Year', min_value=int(new_df['year'].min()), value=int(new_df['year'].min()), step=1)
+#end_year_value = st.number_input('End Year', min_value=begin_year_value, value=int(new_df['year'].max()), step=1)
 
 # Display selected or default values
-st.write(f"Begin Year: {begin_year_value if begin_year_value else int(new_df['year'].min())}")
-st.write(f"End Year: {end_year_value if end_year_value else int(new_df['year'].max())}")
+st.write(f"Begin Year: {begin_year_int if begin_year_int else int(new_df['year'].min())}")
+st.write(f"End Year: {end_year_int if end_year_int else int(new_df['year'].max())}")
 
 if st.button('Plot'):
 
