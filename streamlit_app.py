@@ -18,14 +18,14 @@ df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chic
 # Create a smaller df for testing purposes
 df_crime_1 = df_crime.loc[:1000, :]
 
-crime = "MOTOR VEHICLE THEFT"
+#crime = "MOTOR VEHICLE THEFT"
 #community = "Rogers Park"
 
 start_init = "2018-01-01"
 end_init = "2024-01-01"
 
 
-def clean_robberies(crime_df, neighborhoods, crime_type, start_date=start_init, end_date=end_init):
+def clean_robberies(crime_df, neighborhoods, crime, start_date=start_init, end_date=end_init):
     """Combines the crime, demographic and neightborhoods dataframe into one."""
 
     # Convert 'Date' column to date time
@@ -59,7 +59,7 @@ def clean_robberies(crime_df, neighborhoods, crime_type, start_date=start_init, 
     crime_df['Time of Day'] = np.select(conditions, values)
 
     # Filter for only the robberies
-    crime_df = crime_df.loc[crime_df['Primary Type'] == crime_type]
+    crime_df = crime_df.loc[crime_df['Primary Type'] == crime]
 
     # Add the communities to the dataframe.
     crime_df_1 = crime_df.merge(neighborhoods, how='left', on='Community Area')
@@ -107,16 +107,15 @@ with st.sidebar:
     st.title('Neighborhodd Input')
     begin_date = st.date_input('Begin Date', start_init_1)
     ending_date = st.date_input('End Date', end_init_1)
-    community = st.selectbox('Select Community', options=df_communities['Community'].unique())
-
-
+    community = st.selectbox('Community', options=df_communities['Community'].unique())
+    crime_type = st.selectbox('Crime Type', options=df_crime['Primary Type'].unique())
 
 # Convert the datetime back to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
 ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
 data_load_state = st.text('Loading data...')
-new_df = clean_robberies(df_crime_1, df_communities, crime, begin_date_1, ending_date_1)
+new_df = clean_robberies(df_crime_1, df_communities, crime_type, begin_date_1, ending_date_1)
 data_load_state.text("Data loaded!")
 
 st.write(new_df)
