@@ -1,4 +1,5 @@
 
+
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -41,7 +42,7 @@ def clean_robberies(crime_df, demographics, neighborhoods, crime_type):
     crime_df = crime_df.loc[crime_df['Primary Type'] == crime_type]
 
     # Add the communities to the dataframe.
-    crime_df_1 = crime_df.merge(neighborhoods, how='right', on='Community Area')
+    crime_df_1 = crime_df.merge(neighborhoods, how='left', on='Community Area')
 
     # Change the column name for the demographics from GEOG to 'Community'.
     demographics = demographics.rename(columns={'GEOG':'Community'})
@@ -49,7 +50,15 @@ def clean_robberies(crime_df, demographics, neighborhoods, crime_type):
     # Add the demographics dataframe
     crime_df_2 = crime_df_1.merge(demographics, how='left', on='Community')
 
-    return crime_df_2
+    # Filter for the crimes of interest.
+    keep_crimes = ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY', 'CRIM SEXUAL ASSAULT',
+                   'MOTOR VEHICLE THEFT', 'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS',
+                   'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
+                   'DOMESTIC VIOLENCE']
+
+    crime_df_3 = crime_df_2[crime_df_2['Primary Type'].isin(keep_crimes)]
+
+    return crime_df_3
 
 
 def plot_community_time_day(df_crimetype, community, begin_year, end_year):
@@ -72,8 +81,6 @@ def plot_community_time_day(df_crimetype, community, begin_year, end_year):
     fig.show()
 
     return
-
-
 
 
 # Import the data files.
