@@ -83,6 +83,25 @@ def plot_community_time_day(df_crimetype, community, begin_year, end_year):
     return
 
 
+def location_description(df_crimetype, community, begin_year, end_year):
+    """Plots a pie chart of the different locations"""
+
+    # filter for the number of years
+    mask_years = (df_crimetype['Year'] >= begin_year) & (df_crimetype['Year'] < end_year)
+
+    # filter for the community
+    mask_community = (df_crimetype['Community'] == community)
+
+    # Apply the years and community masks to the the dataframe
+    df_crimetype = df_crimetype.loc[mask_years & mask_community]
+
+    value_counts = df_crimetype['Location Description'].value_counts()
+
+    # Plot the crimes by time of day
+    fig = px.pie(df_crimetype, values=value_counts.values, names=value_counts.index)
+    fig.show()
+
+
 # Import the data files.
 # Crime database
 df_crime = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\Crimes_-_2001_to_Present.csv")
@@ -99,4 +118,6 @@ starting_year = 2023
 ending_year = 2024
 chicago_community = 'The Loop'
 
-community_df = plot_community_time_day(new_df, chicago_community, starting_year, ending_year)
+#community_df = plot_community_time_day(new_df, chicago_community, starting_year, ending_year)
+
+location_df = location_description(new_df, chicago_community, starting_year, ending_year)
