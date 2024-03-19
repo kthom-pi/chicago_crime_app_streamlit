@@ -121,23 +121,36 @@ ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
 # Create a blank dataframe to hold in the session state
 # Obtain the column names from the original crime dataframe
-column_names = mod_df().columns
-blank_df = pd.DataFrame(columns=column_names)
-st.session_state['new_df'] = blank_df
+#column_names = mod_df().columns
+#blank_df = pd.DataFrame(columns=column_names)
+#st.session_state['new_df_key'] = blank_df
+
+
+if 'new_df_key_1' not in st.session_state:
+    new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+    st.session_state['new_df_key_1'] = new_df
+    st.write(st.session_state['new_df_key_1'])
+    #st.write(st.session_state['new_df_key_1'])
 
 
 if data_button:
     data_load_state = st.text('Loading data...')
-    new_df_1 = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+    new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+    st.session_state['new_df_key_1'] = new_df
+    st.write(st.session_state['new_df_key_1'])
     data_load_state.text("Data loaded!")
-    st.session_state['new_df_1'] = new_df_1
 
-st.write(st.session_state['new_df_1'])
 
 if barplot_button:
     st.subheader('Crime by Time of Day')
-    fig = plot_community_time_day(st.session_state['new_df_1'])
+    fig = plot_community_time_day(st.session_state['new_df_key_1'])
     st.plotly_chart(fig)
+    #if 'new_df_key_1' not in st.session_state:
+    #    st.error("Press 'Preview Data' First")
+    #else:
+        #st.write(st.session_state['new_df_key_1'])
+    #    fig = plot_community_time_day(st.session_state['new_df_key_1'])
+    #    st.plotly_chart(fig)
 
 
 
