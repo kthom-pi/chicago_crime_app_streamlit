@@ -85,6 +85,26 @@ def plot_community_time_day(df):
 
     return fig
 
+def location_description(df):
+    """Plots a histogram of the location of most likely occurrence."""
+
+    value_counts = df['Location Description'].value_counts()
+
+    # Does a breakdown of occurrence for each crime.
+    fig = px.pie(df, values=value_counts.values, names=value_counts.index)
+
+    return fig
+
+def crime_map(df):
+    """Plots a map of the different crime locations"""
+
+    latitude = df['Latitude']
+    longitude = df['Longitude']
+    coordinates_data = {'latitude': latitude, 'longitude': longitude}
+    df_coordinates = pd.DataFrame(coordinates_data)
+    st.map(df_coordinates, color='#4dffff', size=10)
+
+
 st.set_page_config(
     page_title="Neighborhood Watch Statistics",
     layout="wide",
@@ -111,8 +131,10 @@ with st.sidebar:
     ending_date = st.date_input('End Date', end_init_1)
     community_chosen = st.selectbox('Community', options=df_communities['Community'].unique())
     crime_type = st.selectbox('Crime Type', options=df_crime_1['Primary Type'].unique())
-    data_button = st.button("Preview Data")
+    data_button = st.button("Update Data")
     barplot_button = st.button('Plot Crimes by Time of Day')
+    piechart_button = st.button('Plot Location Breakdown')
+    map_button = st.button("Plot Crime Map")
 
 # Convert the datetime back to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
@@ -151,6 +173,15 @@ if barplot_button:
         #st.write(st.session_state['new_df_key_1'])
     #    fig = plot_community_time_day(st.session_state['new_df_key_1'])
     #    st.plotly_chart(fig)
+
+if piechart_button:
+    st.subheader('Location Description')
+    fig2 = location_description((st.session_state['new_df_key_1']))
+    st.plotly_chart(fig2)
+
+if map_button:
+    st.subheader('Map of Crime Locations')
+    crime_map(st.session_state['new_df_key_1'])
 
 
 
