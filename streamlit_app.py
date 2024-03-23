@@ -7,6 +7,7 @@ import datetime
 import plotly.express as px
 
 
+
 # Import the community data files.
 df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\communities.csv")
 
@@ -102,7 +103,7 @@ def crime_map(df):
     longitude = df['Longitude']
     coordinates_data = {'latitude': latitude, 'longitude': longitude}
     df_coordinates = pd.DataFrame(coordinates_data)
-    st.map(df_coordinates, color='#4dffff', size=10)
+    st.map(df_coordinates, color='#4dffff', size=15)
 
 
 st.set_page_config(
@@ -123,74 +124,60 @@ end_init_1 = pd.to_datetime(end_init)
 # Obtain the dataset with the desired columns
 df_crime_1 = mod_df()
 
+sidebar_column, center_column = st.columns([1,3])
 
 # Add a sidebar
-with st.sidebar:
+#with st.sidebar:
+with sidebar_column:
     st.title('Neighborhodd Input')
     begin_date = st.date_input('Begin Date', start_init_1)
     ending_date = st.date_input('End Date', end_init_1)
     community_chosen = st.selectbox('Community', options=df_communities['Community'].unique())
     crime_type = st.selectbox('Crime Type', options=df_crime_1['Primary Type'].unique())
     data_button = st.button("Update Data")
-    barplot_button = st.button('Plot Crimes by Time of Day')
-    piechart_button = st.button('Plot Location Breakdown')
-    map_button = st.button("Plot Crime Map")
 
 # Convert the datetime back to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
 ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
 
-# Create a blank dataframe to hold in the session state
-# Obtain the column names from the original crime dataframe
-#column_names = mod_df().columns
-#blank_df = pd.DataFrame(columns=column_names)
-#st.session_state['new_df_key'] = blank_df
+# Content on the main colunn.
+with center_column:
+    st.title('Table of Data')
+    # Placeholder for dataframe table
+    data_placeholder = st.empty()
+    if st.session_state.get('new_df_key_1') is not None:
+        data_placeholder.write(st.session_state['new_df_key_1'])
 
+    # Row to hold the pie and bar charts.
+    col1, col2 = st.columns(2)
+    with col1:
+        # Box Plot
+        st.subheader('Time of Day')
+        boxplot_placeholder = st.empty()
+        #Pie chart
+    with col2:
+        st.subheader('Pie Chart')
+        piechart_placeholder = st.empty()
 
-if 'new_df_key_1' not in st.session_state:
-    new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
-    st.session_state['new_df_key_1'] = new_df
-    st.write(st.session_state['new_df_key_1'])
-    #st.write(st.session_state['new_df_key_1'])
-
-
+# Load the data and update the placeholders when "Update Data" is clicked.
 if data_button:
-    data_load_state = st.text('Loading data...')
     new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
     st.session_state['new_df_key_1'] = new_df
-    st.write(st.session_state['new_df_key_1'])
-    data_load_state.text("Data loaded!")
+    data_placeholder.write(new_df)
 
-
-if barplot_button:
-    st.subheader('Crime by Time of Day')
+    # Boxplot implementation
     fig = plot_community_time_day(st.session_state['new_df_key_1'])
-    st.plotly_chart(fig)
-    #if 'new_df_key_1' not in st.session_state:
-    #    st.error("Press 'Preview Data' First")
-    #else:
-        #st.write(st.session_state['new_df_key_1'])
-    #    fig = plot_community_time_day(st.session_state['new_df_key_1'])
-    #    st.plotly_chart(fig)
+    boxplot_placeholder.plotly_chart(fig)
 
-if piechart_button:
-    st.subheader('Location Description')
-    fig2 = location_description((st.session_state['new_df_key_1']))
-    st.plotly_chart(fig2)
+    # Piechart implementation
+    fig2 = location_description(st.session_state['new_df_key_1'])
+    piechart_placeholder.plotly_chart(fig2)
 
-if map_button:
-    st.subheader('Map of Crime Locations')
+    # Map implementation
     crime_map(st.session_state['new_df_key_1'])
 
 
-
-
-
-
-# Display selected or default values
-#st.write(f"Begin Year: {begin_year_int if begin_year_int else int(new_df['year'].min())}")
-#st.write(f"End Year: {end_year_int if end_year_int else int(new_df['year'].max())}")
 
 
 
