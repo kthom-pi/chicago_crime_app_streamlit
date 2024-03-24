@@ -103,6 +103,7 @@ def crime_map(df):
     longitude = df['Longitude']
     coordinates_data = {'latitude': latitude, 'longitude': longitude}
     df_coordinates = pd.DataFrame(coordinates_data)
+
     st.map(df_coordinates, color='#4dffff', size=15)
 
 
@@ -143,11 +144,14 @@ ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
 # Content on the main colunn.
 with center_column:
-    st.title('Table of Data')
+    st.subheader('Table of Data')
     # Placeholder for dataframe table
     data_placeholder = st.empty()
-    if st.session_state.get('new_df_key_1') is not None:
-        data_placeholder.write(st.session_state['new_df_key_1'])
+    new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+    if 'new_df_key_1' not in st.session_state:
+        st.session_state['new_df_key_1'] = new_df
+        #st.dataframe(new_df)
+        data_placeholder = new_df
 
     # Row to hold the pie and bar charts.
     col1, col2 = st.columns(2)
@@ -164,7 +168,7 @@ with center_column:
 if data_button:
     new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
     st.session_state['new_df_key_1'] = new_df
-    data_placeholder.write(new_df)
+    data_placeholder.dataframe(new_df)
 
     # Boxplot implementation
     fig = plot_community_time_day(st.session_state['new_df_key_1'])
