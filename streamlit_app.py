@@ -7,7 +7,6 @@ import datetime
 import plotly.express as px
 
 
-
 # Import the community data files.
 df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\communities.csv")
 
@@ -83,6 +82,8 @@ def plot_community_time_day(df):
 
     # Plot the crimes by time of day
     fig = px.histogram(df, x='Time of Day', category_orders={'Time of Day': order})
+    # Set the pie chart size.
+    fig.update_layout(width=500, height=400)
 
     return fig
 
@@ -93,6 +94,9 @@ def location_description(df):
 
     # Does a breakdown of occurrence for each crime.
     fig = px.pie(df, values=value_counts.values, names=value_counts.index)
+    fig.update_layout(width=500, height=400)
+    # Removes the labels
+    fig.update_traces(textposition='inside', textinfo='none')
 
     return fig
 
@@ -106,6 +110,9 @@ def crime_map(df):
 
     st.map(df_coordinates, color='#4dffff', size=15)
 
+    return
+
+
 
 st.set_page_config(
     page_title="Neighborhood Watch Statistics",
@@ -115,7 +122,7 @@ st.set_page_config(
 
 alt.themes.enable("dark")
 
-start_init = "2018-01-01"
+start_init = "2023-10-01"
 end_init = "2024-01-01"
 
 start_init_1 = pd.to_datetime(start_init)
@@ -125,44 +132,54 @@ end_init_1 = pd.to_datetime(end_init)
 # Obtain the dataset with the desired columns
 df_crime_1 = mod_df()
 
-sidebar_column, center_column = st.columns([1,3])
 
 # Add a sidebar
-#with st.sidebar:
-with sidebar_column:
+with st.sidebar:
+#with sidebar_column:
     st.title('Neighborhodd Input')
     begin_date = st.date_input('Begin Date', start_init_1)
     ending_date = st.date_input('End Date', end_init_1)
+    st.text("")
     community_chosen = st.selectbox('Community', options=df_communities['Community'].unique())
     crime_type = st.selectbox('Crime Type', options=df_crime_1['Primary Type'].unique())
+    st.text("")
     data_button = st.button("Update Data")
 
 # Convert the datetime back to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
 ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
-
 # Content on the main colunn.
-with center_column:
-    st.subheader('Table of Data')
-    # Placeholder for dataframe table
+st.subheader('Table of Data')
+# Placeholder for dataframe table
+data_placeholder = st.empty()
+new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+if 'new_df_key_1' not in st.session_state:
+    st.session_state['new_df_key_1'] = new_df
     data_placeholder = st.empty()
-    new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
-    if 'new_df_key_1' not in st.session_state:
-        st.session_state['new_df_key_1'] = new_df
-        #st.dataframe(new_df)
-        data_placeholder = new_df
 
-    # Row to hold the pie and bar charts.
-    col1, col2 = st.columns(2)
-    with col1:
-        # Box Plot
-        st.subheader('Time of Day')
-        boxplot_placeholder = st.empty()
-        #Pie chart
-    with col2:
-        st.subheader('Pie Chart')
-        piechart_placeholder = st.empty()
+st.text("")
+st.text("")
+
+# Row to hold the pie and bar charts.
+col1, col2 = st.columns(2)
+with col1:
+    # Box Plot
+    st.subheader('Time of Day')
+    boxplot_placeholder = st.empty()
+
+    #Pie chart
+with col2:
+    st.subheader('Location Description')
+    piechart_placeholder = st.empty()
+
+st.text("")
+
+    # Location Map
+c1 = st.container()
+c1.subheader("Crime Location Map")
+c1.map_placeholder = st.empty()
+
 
 # Load the data and update the placeholders when "Update Data" is clicked.
 if data_button:
@@ -179,7 +196,8 @@ if data_button:
     piechart_placeholder.plotly_chart(fig2)
 
     # Map implementation
-    crime_map(st.session_state['new_df_key_1'])
+    fig3 = crime_map(st.session_state['new_df_key_1'])
+    c1.map_placeholder = fig3
 
 
 
