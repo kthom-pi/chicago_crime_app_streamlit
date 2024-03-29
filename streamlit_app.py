@@ -112,7 +112,7 @@ def crime_map(df):
     coordinates_data = {'latitude': latitude, 'longitude': longitude}
     df_coordinates = pd.DataFrame(coordinates_data)
 
-    st.map(df_coordinates, color='#4dffff', size=15)
+    st.map(df_coordinates, color='#4dffff', size=20)
 
     return
 
