@@ -10,6 +10,10 @@ import plotly.express as px
 # Import the community data files.
 df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\communities.csv")
 
+
+# API access
+# Website: https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data_preview
+
 @st.cache_data
 def mod_df():
     """Imports the dataframe and keeps only the desired columns."""
