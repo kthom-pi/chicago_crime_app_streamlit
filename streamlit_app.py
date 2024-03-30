@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import altair as alt
-import datetime
+from datetime import date, datetime
 import plotly.express as px
+from sodapy import Socrata
 
 
 # Import the community data files.
 df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\communities.csv")
-
 
 # API access
 # Website: https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data_preview
@@ -32,24 +32,50 @@ def mod_df():
 
     return df_crime_input
 
+def crime_names():
+    """Returns a list of the available crimes to choose from."""
+
+    keep_crimes = {'Primary Type': ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY', 'CRIM SEXUAL ASSAULT',
+                                    'MOTOR VEHICLE THEFT', 'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS',
+                                    'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
+                                    'DOMESTIC VIOLENCE']}
+
+    df_crime_type = pd.DataFrame(keep_crimes)
+
+    return df_crime_type
+
+def convert_community(chosen_community, df_communities):
+    """Converts the chosen community to a number that can be called in the API."""
+
+    print("Got this far!!!")
+
+    community_row = df_communities[df_communities['Community'] == chosen_community]
+    community_area_number = community_row.iloc[0]['Community Area']
+
+    print(f"This is the community value: {community_area_number}.")
+
+    return community_area_number
+
+
+
 @st.cache_data
 def clean_robberies(crime_df, neighborhoods, community, crime, start_date= "2018-01-01", end_date="2024-01-01"):
     """Combines the crime, demographic and neightborhoods dataframe into one."""
 
     # Convert 'Date' column to date time
-    crime_df['Date'] = pd.to_datetime(crime_df['Date'], format='mixed')
+    crime_df['date'] = pd.to_datetime(crime_df['date'], format='mixed')
 
     # Apply filter to dataframe
-    mask_1 = crime_df['Date'] >= start_date
-    mask_2 = crime_df['Date'] < end_date
+    mask_1 = crime_df['date'] >= start_date
+    mask_2 = crime_df['date'] < end_date
 
-    crime_df = crime_df.loc[mask_1 & mask_2].sort_values(by='Date')
+    crime_df = crime_df.loc[mask_1 & mask_2].sort_values(by='date')
 
     # Create columns with hour, day, month, year
-    crime_df['hour'] = crime_df['Date'].dt.hour
-    crime_df['day'] = crime_df['Date'].dt.day
-    crime_df['month'] = crime_df['Date'].dt.month
-    crime_df['year'] = crime_df['Date'].dt.year
+    crime_df['hour'] = crime_df['date'].dt.hour
+    crime_df['day'] = crime_df['date'].dt.day
+    crime_df['month'] = crime_df['date'].dt.month
+    crime_df['year'] = crime_df['date'].dt.year
 
     # Create a feature based on time of day
     conditions = [
@@ -67,13 +93,29 @@ def clean_robberies(crime_df, neighborhoods, community, crime, start_date= "2018
     crime_df['Time of Day'] = np.select(conditions, values)
 
     # Filter for only the robberies
-    crime_df = crime_df.loc[crime_df['Primary Type'] == crime]
+    crime_df = crime_df.loc[crime_df['primary_type'] == crime]
+
+    # Rename the column Community in the Commnities dataframe
+    neighborhoods = neighborhoods.rename(columns={"Community Area": "community_area"})
+
+    # Make the community_area a string in neightborhoods.
+    neighborhoods['community_area'] = neighborhoods['community_area'].astype(str)
 
     # Add the communities to the dataframe.
-    crime_df_1 = crime_df.merge(neighborhoods, how='left', on='Community Area')
+    crime_df_1 = pd.merge(crime_df, neighborhoods, on='community_area', how='outer')
 
-    # Filter for the community
-    crime_df_2 = crime_df_1.loc[crime_df_1["Community"] == community]
+    # Remove NA columns where id = NaN.  This is from the discrepancy between the current date and the
+    # chosen end date.
+    crime_df_2 = crime_df_1.dropna(subset="id")
+
+
+    # Filter for the crimes of interest.
+    #keep_crimes = ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY', 'CRIM SEXUAL ASSAULT',
+    #               'MOTOR VEHICLE THEFT', 'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS',
+    #               'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
+    #               'DOMESTIC VIOLENCE']
+
+    #crime_df_1 = crime_df_1[crime_df_1['primary_type'].isin(keep_crimes)]
 
     return crime_df_2
 
@@ -94,7 +136,7 @@ def plot_community_time_day(df):
 def location_description(df):
     """Plots a histogram of the location of most likely occurrence."""
 
-    value_counts = df['Location Description'].value_counts()
+    value_counts = df['location_description'].value_counts()
 
     # Does a breakdown of occurrence for each crime.
     fig = px.pie(df, values=value_counts.values, names=value_counts.index)
@@ -107,15 +149,17 @@ def location_description(df):
 def crime_map(df):
     """Plots a map of the different crime locations"""
 
-    latitude = df['Latitude']
-    longitude = df['Longitude']
+    latitude = df['latitude']
+    longitude = df['longitude']
     coordinates_data = {'latitude': latitude, 'longitude': longitude}
     df_coordinates = pd.DataFrame(coordinates_data)
 
-    st.map(df_coordinates, color='#4dffff', size=20)
+    df_coordinates['latitude'] = df_coordinates['latitude'].astype(float)
+    df_coordinates['longitude'] = df_coordinates['longitude'].astype(float)
 
-    return
+    print(df_coordinates)
 
+    return st.map(df_coordinates, color='#4dffff', size=25)
 
 
 st.set_page_config(
@@ -132,11 +176,11 @@ end_init = "2024-01-01"
 start_init_1 = pd.to_datetime(start_init)
 end_init_1 = pd.to_datetime(end_init)
 
+# Obtain the crime names
+primary_crime_names = crime_names()
 
-# Obtain the dataset with the desired columns
-df_crime_1 = mod_df()
 
-
+# I need to make this so it activates with a button.  Otherwise it will make a request everytime it is changed.
 # Add a sidebar
 with st.sidebar:
 #with sidebar_column:
@@ -145,9 +189,32 @@ with st.sidebar:
     ending_date = st.date_input('End Date', end_init_1)
     st.text("")
     community_chosen = st.selectbox('Community', options=df_communities['Community'].unique())
-    crime_type = st.selectbox('Crime Type', options=df_crime_1['Primary Type'].unique())
+    crime_type = st.selectbox('Crime Type', options=primary_crime_names['Primary Type'])
     st.text("")
     data_button = st.button("Update Data")
+
+
+# I can create an API call with the data selected from the sidebar.  The dataframe from the API call will be used to
+# create new_df which will be provided as an argument in clean_robberies()
+# The community_chosen will be a name however the API will have a number.  Need to make the conversion, before feeding the
+
+community_chosen_1 = convert_community(community_chosen, df_communities)
+
+# Query the current date
+starting_date = "2018-01-01T00:00:00.000"
+current_date = datetime.now()
+end_date = current_date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
+end_date_2 = f"{end_date}"
+
+client = Socrata("data.cityofchicago.org", None)
+results = client.get("ijzp-q8t2",
+                     select="id, case_number, block, primary_type, description, location_description, date, community_area, fbi_code,"
+                            "year, latitude, longitude",
+                     where=f"date > '{starting_date}' AND date < '{end_date_2}' AND primary_type = '{crime_type}' AND community_area = '{community_chosen_1}'",
+                     limit=250000,
+                     order="date DESC")
+
+df_crime_1 = pd.DataFrame.from_records(results)
 
 # Convert the datetime back to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
