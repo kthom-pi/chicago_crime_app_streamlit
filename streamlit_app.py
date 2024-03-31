@@ -2,13 +2,13 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import altair as alt
-from datetime import date, datetime
+from datetime import datetime
 import plotly.express as px
 from sodapy import Socrata
 
 
 # Import the community data files.
-df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\communities.csv")
+df_communities = pd.read_csv("data_files/communities.csv")
 
 # API access
 # Website: https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data_preview
