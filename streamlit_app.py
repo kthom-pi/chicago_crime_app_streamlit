@@ -14,48 +14,27 @@ df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chic
 # API access
 # Website: https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data_preview
 
-@st.cache_data
-def mod_df():
-    """Imports the dataframe and keeps only the desired columns."""
-
-    # Crime database
-    df_crime = pd.read_csv(
-        "C:\\Users\\kthom\\Desktop\\Personal Projects\\Chicago Crime Streamlit\\data_files\\crime_df_mod.csv")
-
-    # Filter for the crimes of interest.
-    keep_crimes = ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY', 'CRIM SEXUAL ASSAULT',
-                   'MOTOR VEHICLE THEFT', 'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS',
-                   'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
-                   'DOMESTIC VIOLENCE']
-
-    df_crime_input = df_crime[df_crime['Primary Type'].isin(keep_crimes)]
-
-    return df_crime_input
 
 def crime_names():
     """Returns a list of the available crimes to choose from."""
 
-    keep_crimes = {'Primary Type': ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY', 'CRIM SEXUAL ASSAULT',
-                                    'MOTOR VEHICLE THEFT', 'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS',
-                                    'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
+    keep_crimes = {'Primary Type': ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY','MOTOR VEHICLE THEFT',
+                                    'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS', 'ROBBERY',
+                                    'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
                                     'DOMESTIC VIOLENCE']}
 
     df_crime_type = pd.DataFrame(keep_crimes)
 
     return df_crime_type
 
+
 def convert_community(chosen_community, df_communities):
     """Converts the chosen community to a number that can be called in the API."""
-
-    print("Got this far!!!")
 
     community_row = df_communities[df_communities['Community'] == chosen_community]
     community_area_number = community_row.iloc[0]['Community Area']
 
-    print(f"This is the community value: {community_area_number}.")
-
     return community_area_number
-
 
 
 @st.cache_data
@@ -108,15 +87,6 @@ def clean_robberies(crime_df, neighborhoods, community, crime, start_date= "2018
     # chosen end date.
     crime_df_2 = crime_df_1.dropna(subset="id")
 
-
-    # Filter for the crimes of interest.
-    #keep_crimes = ['THEFT', 'ASSAULT', 'SEX OFFENSE', 'BURGLARY', 'CRIM SEXUAL ASSAULT',
-    #               'MOTOR VEHICLE THEFT', 'OFFENSE INVOLVING CHILDREN', 'CRIMINAL TRESPASS',
-    #               'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'STALKING', 'HOMICIDE', 'KIDNAPPING',
-    #               'DOMESTIC VIOLENCE']
-
-    #crime_df_1 = crime_df_1[crime_df_1['primary_type'].isin(keep_crimes)]
-
     return crime_df_2
 
 
@@ -132,6 +102,7 @@ def plot_community_time_day(df):
     fig.update_layout(width=500, height=400)
 
     return fig
+
 
 def location_description(df):
     """Plots a histogram of the location of most likely occurrence."""
@@ -157,7 +128,8 @@ def crime_map(df):
     df_coordinates['latitude'] = df_coordinates['latitude'].astype(float)
     df_coordinates['longitude'] = df_coordinates['longitude'].astype(float)
 
-    print(df_coordinates)
+    # drop any NaN values
+    df_coordinates = df_coordinates.dropna()
 
     return st.map(df_coordinates, color='#4dffff', size=25)
 
@@ -181,6 +153,8 @@ primary_crime_names = crime_names()
 
 
 # I need to make this so it activates with a button.  Otherwise it will make a request everytime it is changed.
+# I also want to add a total crime counter.  For examples Total "Insert Crime": "Insert Number"
+
 # Add a sidebar
 with st.sidebar:
 #with sidebar_column:
@@ -193,10 +167,6 @@ with st.sidebar:
     st.text("")
     data_button = st.button("Update Data")
 
-
-# I can create an API call with the data selected from the sidebar.  The dataframe from the API call will be used to
-# create new_df which will be provided as an argument in clean_robberies()
-# The community_chosen will be a name however the API will have a number.  Need to make the conversion, before feeding the
 
 community_chosen_1 = convert_community(community_chosen, df_communities)
 
