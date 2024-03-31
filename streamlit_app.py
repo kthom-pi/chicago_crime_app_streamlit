@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -164,7 +163,6 @@ end_init_1 = pd.to_datetime(end_init)
 # Obtain the crime names
 primary_crime_names = crime_names()
 
-
 # I need to make this so it activates with a button.  Otherwise it will make a request everytime it is changed.
 # I also want to add a total crime counter.  For examples Total "Insert Crime": "Insert Number"
 
@@ -180,11 +178,7 @@ with st.sidebar:
     st.text("")
     data_button = st.button("Update Data")
 
-
 community_chosen_1 = convert_community(community_chosen, df_communities)
-
-
-#if data_button:
 
 # Query the current date
 starting_date = "2018-01-01T00:00:00.000"
@@ -192,13 +186,12 @@ current_date = datetime.now()
 end_date = current_date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
 end_date_2 = f"{end_date}"
 
-# Obtain the data from the chicago crime api
-results = call_data(starting_date, end_date_2, crime_type, community_chosen_1)
 
+# Obtain the data from the chicago crime API
+results = call_data(starting_date, end_date_2, crime_type, community_chosen_1)
 df_crime_1 = pd.DataFrame.from_records(results)
 
-
-# Convert the datetime back to a string
+# Convert the datetime to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
 ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
