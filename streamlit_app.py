@@ -14,6 +14,19 @@ df_communities = pd.read_csv("C:\\Users\\kthom\\Desktop\\Personal Projects\\Chic
 # API access
 # Website: https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2/data_preview
 
+def call_data(start_date, end_date, crime_type, community):
+    """Makes a call to the chicago crime API. """
+
+    client = Socrata("data.cityofchicago.org", None)
+    results = client.get("ijzp-q8t2",
+                         select="id, case_number, block, primary_type, description, location_description, date, community_area, fbi_code,"
+                                "year, latitude, longitude",
+                         where=f"date > '{start_date}' AND date < '{end_date}' AND primary_type = '{crime_type}' AND community_area = '{community}'",
+                         limit=250000,
+                         order="date DESC")
+
+    return results
+
 
 def crime_names():
     """Returns a list of the available crimes to choose from."""
@@ -170,21 +183,20 @@ with st.sidebar:
 
 community_chosen_1 = convert_community(community_chosen, df_communities)
 
+
+#if data_button:
+
 # Query the current date
 starting_date = "2018-01-01T00:00:00.000"
 current_date = datetime.now()
 end_date = current_date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
 end_date_2 = f"{end_date}"
 
-client = Socrata("data.cityofchicago.org", None)
-results = client.get("ijzp-q8t2",
-                     select="id, case_number, block, primary_type, description, location_description, date, community_area, fbi_code,"
-                            "year, latitude, longitude",
-                     where=f"date > '{starting_date}' AND date < '{end_date_2}' AND primary_type = '{crime_type}' AND community_area = '{community_chosen_1}'",
-                     limit=250000,
-                     order="date DESC")
+# Obtain the data from the chicago crime api
+results = call_data(starting_date, end_date_2, crime_type, community_chosen_1)
 
 df_crime_1 = pd.DataFrame.from_records(results)
+
 
 # Convert the datetime back to a string
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
