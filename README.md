@@ -1,4 +1,4 @@
-Go to App! https://chicagocrime.streamlit.app/
+Visit the App! https://chicagocrime.streamlit.app/
 
 
 ![chicago_crime_app_prev_3](https://github.com/kthom-pi/chicago_crime_app_streamlit/assets/64857144/ce2f596b-ff4f-448f-87cd-6b62591370b9)
