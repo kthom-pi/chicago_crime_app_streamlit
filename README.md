@@ -15,7 +15,7 @@ a neighborhood more easily available and digestable.
 
 The data is broken down into the following 
 
-Table Summary of Crime selected:
+Table summary of crime selected:
 
 ![image](https://github.com/kthom-pi/chicago_crime_app_streamlit/assets/64857144/f2f0f7a8-b935-4331-876e-94519948fc39)
 
