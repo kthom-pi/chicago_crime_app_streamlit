@@ -99,7 +99,10 @@ def clean_robberies(crime_df, neighborhoods, community, crime, start_date= "2018
     # chosen end date.
     crime_df_2 = crime_df_1.dropna(subset="id")
 
-    return crime_df_2
+    # Obtain the total number of crimes
+    crime_total = len(crime_df_2)
+
+    return crime_df_2, crime_total
 
 
 def plot_community_time_day(df):
@@ -111,7 +114,7 @@ def plot_community_time_day(df):
     # Plot the crimes by time of day
     fig = px.histogram(df, x='Time of Day', category_orders={'Time of Day': order})
     # Set the pie chart size.
-    fig.update_layout(width=500, height=400)
+    fig.update_layout(width=400, height=350)
 
     return fig
 
@@ -123,7 +126,7 @@ def location_description(df):
 
     # Does a breakdown of occurrence for each crime.
     fig = px.pie(df, values=value_counts.values, names=value_counts.index)
-    fig.update_layout(width=500, height=400)
+    fig.update_layout(width=450, height=400)
     # Removes the labels
     fig.update_traces(textposition='inside', textinfo='none')
 
@@ -163,9 +166,8 @@ end_init_1 = pd.to_datetime(end_init)
 # Obtain the crime names
 primary_crime_names = crime_names()
 
-# I need to make this so it activates with a button.  Otherwise it will make a request everytime it is changed.
-# I also want to add a total crime counter.  For examples Total "Insert Crime": "Insert Number"
 
+# Streamlit application UI code below.
 # Add a sidebar
 with st.sidebar:
 #with sidebar_column:
@@ -187,7 +189,7 @@ end_date = current_date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
 end_date_2 = f"{end_date}"
 
 
-# Obtain the data from the chicago crime API
+# Obtain the data from the chicago crime API.
 results = call_data(starting_date, end_date_2, crime_type, community_chosen_1)
 df_crime_1 = pd.DataFrame.from_records(results)
 
@@ -195,11 +197,17 @@ df_crime_1 = pd.DataFrame.from_records(results)
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
 ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
+# Count of Total Crimes
+st.subheader(f'Total: {crime_type}')
+crimecount_placeholder = st.empty()
+
 # Content on the main colunn.
 st.subheader('Table of Data')
 # Placeholder for dataframe table
 data_placeholder = st.empty()
-new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+# Clean the data and create the Time of Day column
+# Add the new datatframe to the current session state.
+new_df, crime_tot = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
 if 'new_df_key_1' not in st.session_state:
     st.session_state['new_df_key_1'] = new_df
     data_placeholder = st.empty()
@@ -207,7 +215,7 @@ if 'new_df_key_1' not in st.session_state:
 st.text("")
 st.text("")
 
-# Row to hold the pie and bar charts.
+# Rows to hold the pie and bar charts.
 col1, col2 = st.columns(2)
 with col1:
     # Box Plot
@@ -229,7 +237,9 @@ c1.map_placeholder = st.empty()
 
 # Load the data and update the placeholders when "Update Data" is clicked.
 if data_button:
-    new_df = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+    crimecount_placeholder.subheader(crime_tot)
+
+    new_df, crime_tot = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
     st.session_state['new_df_key_1'] = new_df
     data_placeholder.dataframe(new_df)
 
@@ -244,11 +254,3 @@ if data_button:
     # Map implementation
     fig3 = crime_map(st.session_state['new_df_key_1'])
     c1.map_placeholder = fig3
-
-
-
-
-
-
-
-
