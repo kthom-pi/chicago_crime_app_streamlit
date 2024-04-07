@@ -50,7 +50,7 @@ def convert_community(chosen_community, df_communities):
 
 
 @st.cache_data
-def clean_robberies(crime_df, neighborhoods, community, crime, start_date= "2018-01-01", end_date="2024-01-01"):
+def clean_crimes(crime_df, neighborhoods, crime, start_date= "2018-01-01", end_date="2024-01-01"):
     """Combines the crime, demographic and neightborhoods dataframe into one."""
 
     # Convert 'Date' column to date time
@@ -207,7 +207,7 @@ st.subheader('Table of Data')
 data_placeholder = st.empty()
 # Clean the data and create the Time of Day column
 # Add the new datatframe to the current session state.
-new_df, crime_tot = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+new_df, crime_tot = clean_crimes(df_crime_1, df_communities, crime_type, begin_date_1, ending_date_1)
 if 'new_df_key_1' not in st.session_state:
     st.session_state['new_df_key_1'] = new_df
     data_placeholder = st.empty()
@@ -239,7 +239,7 @@ c1.map_placeholder = st.empty()
 if data_button:
     crimecount_placeholder.subheader(crime_tot)
 
-    new_df, crime_tot = clean_robberies(df_crime_1, df_communities, community_chosen, crime_type, begin_date_1, ending_date_1)
+    new_df, crime_tot = clean_crimes(df_crime_1, df_communities, crime_type, begin_date_1, ending_date_1)
     st.session_state['new_df_key_1'] = new_df
     data_placeholder.dataframe(new_df)
 
