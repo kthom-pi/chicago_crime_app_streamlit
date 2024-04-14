@@ -174,7 +174,7 @@ primary_crime_names = crime_names()
 # Streamlit application UI code below.
 # Add a sidebar
 with st.sidebar:
-    st.title('Chicago Neighborhood Crime Summary')
+    st.title('Chicago Neighborhood Crime Dashboard')
     begin_date = st.date_input('Begin Date', start_init_1)
     ending_date = st.date_input('End Date', end_init_1)
     st.text("")
