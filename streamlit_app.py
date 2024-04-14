@@ -83,7 +83,7 @@ def clean_crimes(crime_df, neighborhoods, crime, start_date= "2018-01-01", end_d
 
     crime_df['Time of Day'] = np.select(conditions, values)
 
-    # Filter for only the robberies
+    # Filter for only the crime of interest.
     crime_df = crime_df.loc[crime_df['primary_type'] == crime]
 
     # Rename the column Community in the Commnities dataframe
@@ -146,7 +146,10 @@ def crime_map(df):
     # drop any NaN values
     df_coordinates = df_coordinates.dropna()
 
-    return st.map(df_coordinates, color='#4dffff', size=25)
+    color = '#4dffff'
+    size = 25
+
+    return df_coordinates, color, size
 
 
 st.set_page_config(
@@ -157,20 +160,20 @@ st.set_page_config(
 
 alt.themes.enable("dark")
 
+# Provide initial start and end times for the date inputs.
 start_init = "2023-10-01"
 end_init = "2024-01-01"
 
+# Convert to datetime.
 start_init_1 = pd.to_datetime(start_init)
 end_init_1 = pd.to_datetime(end_init)
 
 # Obtain the crime names
 primary_crime_names = crime_names()
 
-
 # Streamlit application UI code below.
 # Add a sidebar
 with st.sidebar:
-#with sidebar_column:
     st.title('Chicago Neighborhood Crime Summary')
     begin_date = st.date_input('Begin Date', start_init_1)
     ending_date = st.date_input('End Date', end_init_1)
@@ -197,7 +200,7 @@ df_crime_1 = pd.DataFrame.from_records(results)
 begin_date_1 = begin_date.strftime('%Y-%m-%d')
 ending_date_1 = ending_date.strftime('%Y-%m-%d')
 
-# Count of Total Crimes
+# Create a placeholder for the crime count.
 st.subheader(f'Total: {crime_type}')
 crimecount_placeholder = st.empty()
 
@@ -206,11 +209,14 @@ st.subheader('Table of Data')
 # Placeholder for dataframe table
 data_placeholder = st.empty()
 # Clean the data and create the Time of Day column
-# Add the new datatframe to the current session state.
 new_df, crime_tot = clean_crimes(df_crime_1, df_communities, crime_type, begin_date_1, ending_date_1)
 if 'new_df_key_1' not in st.session_state:
+    # Add the new dataframe to the current session state.
     st.session_state['new_df_key_1'] = new_df
     data_placeholder = st.empty()
+    data_placeholder.dataframe(new_df)
+    # Count of Total Crimes and update the value
+    crimecount_placeholder.subheader(crime_tot)
 
 st.text("")
 st.text("")
@@ -221,18 +227,25 @@ with col1:
     # Box Plot
     st.subheader('Time of Day')
     boxplot_placeholder = st.empty()
+    fig = plot_community_time_day(st.session_state['new_df_key_1'])
+    boxplot_placeholder.plotly_chart(fig)
 
     #Pie chart
 with col2:
     st.subheader('Location Description')
     piechart_placeholder = st.empty()
+    fig2 = location_description(st.session_state['new_df_key_1'])
+    piechart_placeholder.plotly_chart(fig2)
+
 
 st.text("")
 
     # Location Map
-c1 = st.container()
-c1.subheader("Crime Location Map")
-c1.map_placeholder = st.empty()
+create_map = st.empty()
+create_map.subheader("Crime Location Map")
+df_coordinates, color, size = crime_map(st.session_state['new_df_key_1'])
+create_map.map(df_coordinates, color=color, size=size)
+
 
 
 # Load the data and update the placeholders when "Update Data" is clicked.
@@ -252,5 +265,5 @@ if data_button:
     piechart_placeholder.plotly_chart(fig2)
 
     # Map implementation
-    fig3 = crime_map(st.session_state['new_df_key_1'])
-    c1.map_placeholder = fig3
+    df_coordinates, color, size = crime_map(st.session_state['new_df_key_1'])
+    create_map.map(df_coordinates, color=color, size=size)
